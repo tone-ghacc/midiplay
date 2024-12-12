@@ -1,8 +1,9 @@
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+
 public class MidiUtil {
-  public static void printMidiDevices(){
+  public static void printMidiDevices() {
     MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
     System.out.println("MidiDevice.Info : " + infos.length + " item(s)");
     for (int i = 0; i < infos.length; i++) {
@@ -21,7 +22,8 @@ public class MidiUtil {
       System.out.println("  Transmitters : " + device.getMaxTransmitters());
     }
   }
-  public static void main(String[] args){
+
+  public static void main(String[] args) {
     printMidiDevices();
   }
 }
