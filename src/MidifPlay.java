@@ -4,7 +4,7 @@ public class MidifPlay {
     public static void main(String[] args) {
         try {
             // 1. MIDIファイルを読み込む
-            Sequence sequence = MidiSystem.getSequence(MidifPlay.class.getResource("sample.mid"));
+            Sequence sequence = MidiSystem.getSequence(MidifPlay.class.getResource("output.mid"));
 
             // 2. シーケンサーを取得
             Sequencer sequencer = MidiSystem.getSequencer(false); // false: デフォルトシーケンサーを使用しない
