@@ -15,7 +15,7 @@ public class MidRecord {
             track = sequence.createTrack();
             startTime = System.currentTimeMillis();
 
-            bpmchange = getTempoMessage(60);
+            bpmchange = getTempoMessage(240);
             track.add(new MidiEvent(bpmchange, 0));
 
             // MIDIデバイスの取得
