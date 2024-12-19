@@ -6,6 +6,7 @@ public class MidRecord {
     private static Sequence sequence;
     private static Track track;
     private static long startTime;
+    private static MidiMessage bpmchange;
 
     public static void main(String[] args) {
         try {
@@ -13,6 +14,9 @@ public class MidRecord {
             sequence = new Sequence(Sequence.PPQ, 24);
             track = sequence.createTrack();
             startTime = System.currentTimeMillis();
+
+            bpmchange = getTempoMessage(60);
+            track.add(new MidiEvent(bpmchange, 0));
 
             // MIDIデバイスの取得
             MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
@@ -51,10 +55,13 @@ public class MidRecord {
                         try {
                             if (command == ShortMessage.NOTE_ON && velocity > 0) {
                                 System.out.println("鍵盤が押されました: " + key);
-                                track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
-                            } else if (command == ShortMessage.NOTE_OFF || (command == ShortMessage.NOTE_ON && velocity == 0)) {
+                                track.add(
+                                        new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
+                            } else if (command == ShortMessage.NOTE_OFF
+                                    || (command == ShortMessage.NOTE_ON && velocity == 0)) {
                                 System.out.println("鍵盤が離されました: " + key);
-                                track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, key, velocity), tick));
+                                track.add(
+                                        new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, key, velocity), tick));
                             }
                         } catch (InvalidMidiDataException e) {
                             e.printStackTrace();
@@ -79,6 +86,19 @@ public class MidRecord {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static MetaMessage getTempoMessage(double bpm) {
+        long mpq = Math.round(60000000d / bpm);
+        byte[] data = new byte[3];
+        data[0] = (byte) (mpq / 0x10000);
+        data[1] = (byte) ((mpq / 0x100) % 0x100);
+        data[2] = (byte) (mpq % 0x100);
+        try {
+            return new MetaMessage(0x51, data, data.length);
+        } catch (InvalidMidiDataException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 
