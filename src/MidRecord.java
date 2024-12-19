@@ -2,7 +2,7 @@ import javax.sound.midi.*;
 import java.io.File;
 import java.io.IOException;
 
-public class MidiRecorder {
+public class MidRecord {
     private static Sequence sequence;
     private static Track track;
     private static long startTime;
