@@ -22,8 +22,4 @@ public class MidiUtil {
       System.out.println("  Transmitters : " + device.getMaxTransmitters());
     }
   }
-
-  public static void main(String[] args) {
-    printMidiDevices();
-  }
 }
