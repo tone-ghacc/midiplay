@@ -1,3 +1,4 @@
+import javax.sound.midi.*;
 public class Rec implements Receiver {
 
     Sequence sequence;
