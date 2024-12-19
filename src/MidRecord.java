@@ -9,6 +9,7 @@ public class MidRecord {
     private static MidiMessage bpmchange;
 
     public static void main(String[] args) {
+        // printMidiDevices();
         try {
             // MIDIシーケンスとトラックの作成
             sequence = new Sequence(Sequence.PPQ, 24);
@@ -24,7 +25,7 @@ public class MidRecord {
 
             for (MidiDevice.Info info : infos) {
                 device = MidiSystem.getMidiDevice(info);
-                if (device.getMaxTransmitters() != 0) {
+                if ((device.getMaxTransmitters() != 0) && !((info.getName()).equals("Real Time Sequencer"))) {
                     System.out.println("MIDIデバイスが見つかりました: " + info.getName());
                     break;
                 }
@@ -78,7 +79,7 @@ public class MidRecord {
             System.in.read(); // Enterキーが押されるまで実行
 
             // MIDIファイルの保存
-            saveMidiFile(sequence, "output.mid");
+            saveMidiFile(sequence, "assets/output.mid");
             System.out.println("録音が完了しました。output.midに保存しました。");
 
             // デバイスをクローズ
@@ -109,6 +110,26 @@ public class MidRecord {
             MidiSystem.write(sequence, 1, midiFile);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void printMidiDevices() {
+        MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+        System.out.println("MidiDevice.Info : " + infos.length + " item(s)");
+        for (int i = 0; i < infos.length; i++) {
+            System.out.println(" MidiDevice.Info[" + i + "]");
+            System.out.println("  Name         : " + infos[i].getName());
+            System.out.println("  Version      : " + infos[i].getVersion());
+            System.out.println("  Vendor       : " + infos[i].getVendor());
+            System.out.println("  Description  : " + infos[i].getDescription());
+            MidiDevice device;
+            try {
+                device = MidiSystem.getMidiDevice(infos[i]);
+            } catch (MidiUnavailableException ex) {
+                throw new IllegalStateException(ex);
+            }
+            System.out.println("  Receivers    : " + device.getMaxReceivers());
+            System.out.println("  Transmitters : " + device.getMaxTransmitters());
         }
     }
 }
