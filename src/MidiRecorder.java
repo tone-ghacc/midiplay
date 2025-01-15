@@ -44,7 +44,7 @@ public class MidiRecorder {
 
             // デバイスをオープン
             device.open();
-                      
+
             // トランスミッターを設定
             Transmitter transmitter = device.getTransmitter();
             transmitter.setReceiver(new Receiver() {
@@ -60,14 +60,14 @@ public class MidiRecorder {
                             int key = sm.getData1(); // 鍵盤番号
                             int velocity = sm.getData2(); // ベロシティ（力の強さ）
                             if (velocity > 0) {
-                                System.out.println("鍵盤が押されました: " + key+"鍵盤の強さは:" + velocity);
-                                MidiEvent noteOnEvent = new MidiEvent(sm, 0);  // 0ティック目にノートオン
+                                System.out.println("鍵盤が押されました: " + key + "鍵盤の強さは:" + velocity);
+                                MidiEvent noteOnEvent = new MidiEvent(sm, 0); // 0ティック目にノートオン
                                 track.add(noteOnEvent);
                             }
                         } else if (sm.getCommand() == ShortMessage.NOTE_OFF) {
                             int key = sm.getData1();
                             System.out.println("鍵盤が離されました: " + key);
-                            MidiEvent noteOffEvent = new MidiEvent(sm, 500);  // 500ティック後にノートオフ
+                            MidiEvent noteOffEvent = new MidiEvent(sm, 500); // 500ティック後にノートオフ
                             track.add(noteOffEvent);
                         }
                     }
@@ -80,8 +80,6 @@ public class MidiRecorder {
 
             System.out.println("MIDIリスナーが開始されました。");
             System.in.read(); // Enterキーが押されるまで実行
-
-
 
             // デバイスをクローズ
             device.close();
