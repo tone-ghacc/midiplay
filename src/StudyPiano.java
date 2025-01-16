@@ -7,16 +7,20 @@ public class StudyPiano {
     private static Track track;
     private static long startTime;
     private static MidiMessage bpmchange;
+    private static Score score;
+    private static boolean isJudge;
 
     public static void main(String[] args) {
         try {
-            // MIDIシーケンスとトラックの作成
+            // MIDIシーケンスとトラックの作成 - 講師側
             sequence = new Sequence(Sequence.PPQ, 24);
             track = sequence.createTrack();
             startTime = System.currentTimeMillis();
 
             bpmchange = getTempoMessage(240);
             track.add(new MidiEvent(bpmchange, 0));
+
+            score = new Score();
 
             // MIDIデバイスの取得
             MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
@@ -57,6 +61,8 @@ public class StudyPiano {
                                 System.out.println("鍵盤が押されました: " + key);
                                 track.add(
                                         new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
+                                Note note = new Note(key, velocity, tick);
+                                score.addNote(note);
                             } else if (command == ShortMessage.NOTE_OFF
                                     || (command == ShortMessage.NOTE_ON && velocity == 0)) {
                                 System.out.println("鍵盤が離されました: " + key);
@@ -81,35 +87,74 @@ public class StudyPiano {
             saveMidiFile(sequence, "assets/output.mid");
             System.out.println("録音が完了しました。output.midに保存しました。");
 
-            // 1. MIDIファイルを読み込む
+            // MIDIファイルを読み込む
             Sequence midiSeq = MidiSystem.getSequence(StudyPiano.class.getResource("assets/output.mid"));
 
-            // 2. シーケンサーを取得
+            // シーケンサーを取得
             Sequencer midSeqr = MidiSystem.getSequencer(false); // false: デフォルトシーケンサーを使用しない
             midSeqr.open();
 
-            // 3. MIDIデバイスにセット
+            // MIDIデバイスにセット
             Transmitter midTransmitter = midSeqr.getTransmitter();
             Receiver midReceiver = device.getReceiver();
             midTransmitter.setReceiver(midReceiver);
 
-            // 4. シーケンスをシーケンサーにセットして再生
+            // シーケンスをシーケンサーにセットして再生
             midSeqr.setSequence(midiSeq);
-            midSeqr.start();
+            while (isJudge) {
+                midSeqr.start();
 
-            System.out.println("Playback started...");
+                System.out.println("Playback started...");
 
-            // 再生が終わるまで待つ
-            while (midSeqr.isRunning()) {
-                Thread.sleep(1000);
+                // 再生が終わるまで待つ
+                while (midSeqr.isRunning()) {
+                    Thread.sleep(1000);
+                }
+
+                // 終了処理
+                midSeqr.stop();
+
+                System.out.println("Playback completed.");
+
+                // MIDIシーケンスとトラックの作成 - 生徒側
+                sequence = new Sequence(Sequence.PPQ, 24);
+                startTime = System.currentTimeMillis();
+
+                transmitter.setReceiver(new Receiver() {
+                    @Override
+                    public void send(MidiMessage message, long timeStamp) {
+                        if (message instanceof ShortMessage) {
+                            ShortMessage sm = (ShortMessage) message;
+                            int command = sm.getCommand();
+                            int key = sm.getData1();
+                            int velocity = sm.getData2();
+
+                            // イベントのタイミングを計算
+                            long tick = (System.currentTimeMillis() - startTime) / 10;
+
+                            if (command == ShortMessage.NOTE_ON && velocity > 0) {
+                                System.out.println("鍵盤が押されました: " + key);
+                                Note note = new Note(key, velocity, tick);
+                                if (isJudge = score.Judge(note)) {
+                                    System.out.println("正解です");
+                                } else {
+                                    System.out.println("不正解です");
+                                }
+                            } else if (command == ShortMessage.NOTE_OFF
+                                    || (command == ShortMessage.NOTE_ON && velocity == 0)) {
+                                System.out.println("鍵盤が離されました: " + key);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void close() {
+                    }
+                });
             }
 
-            // 終了処理
-            midSeqr.stop();
-            midSeqr.close();
-            System.out.println("Playback completed.");
-
             // デバイスをクローズ
+            midSeqr.close();
             device.close();
 
         } catch (Exception e) {

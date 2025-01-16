@@ -1,22 +1,22 @@
 public class Note {
-    int note;
+    int key;
     int velocity;
-    int tick;
+    long tick;
 
-    public int getNote() {
-        return this.note;
+    public int getKey() {
+        return this.key;
     }
 
     public int getVelocity() {
         return this.velocity;
     }
 
-    public int getTick() {
+    public long getTick() {
         return this.tick;
     }
 
-    Note(int note, int velocity, int tick) {
-        this.note = note;
+    Note(int key, int velocity, long tick) {
+        this.key = key;
         this.velocity = velocity;
         this.tick = tick;
     }
