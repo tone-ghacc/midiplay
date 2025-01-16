@@ -87,34 +87,11 @@ public class StudyPiano {
             saveMidiFile(sequence, "assets/output.mid");
             System.out.println("録音が完了しました。output.midに保存しました。");
 
-            // MIDIファイルを読み込む
-            Sequence midiSeq = MidiSystem.getSequence(StudyPiano.class.getResource("assets/output.mid"));
+            Thread.sleep(1000);
 
-            // シーケンサーを取得
-            Sequencer midSeqr = MidiSystem.getSequencer(false); // false: デフォルトシーケンサーを使用しない
-            midSeqr.open();
-
-            // MIDIデバイスにセット
-            Transmitter midTransmitter = midSeqr.getTransmitter();
-            Receiver midReceiver = device.getReceiver();
-            midTransmitter.setReceiver(midReceiver);
-
-            // シーケンスをシーケンサーにセットして再生
-            midSeqr.setSequence(midiSeq);
+            isJudge = true;
             while (isJudge) {
-                midSeqr.start();
-
-                System.out.println("Playback started...");
-
-                // 再生が終わるまで待つ
-                while (midSeqr.isRunning()) {
-                    Thread.sleep(1000);
-                }
-
-                // 終了処理
-                midSeqr.stop();
-
-                System.out.println("Playback completed.");
+                MidiPlayer.play(new File("assets/output.mid"));
 
                 // MIDIシーケンスとトラックの作成 - 生徒側
                 sequence = new Sequence(Sequence.PPQ, 24);
@@ -151,10 +128,12 @@ public class StudyPiano {
                     public void close() {
                     }
                 });
+
+                System.out.println("録音を開始しました。Enterキーを押すと停止します。");
+                System.in.read();
             }
 
             // デバイスをクローズ
-            midSeqr.close();
             device.close();
 
         } catch (Exception e) {
