@@ -1,15 +1,15 @@
-import javax.sound.midi.*;
 import java.io.File;
 import java.io.IOException;
 
-public class MidRecord {
+import javax.sound.midi.*;
+
+public class StudyPiano {
     private static Sequence sequence;
     private static Track track;
     private static long startTime;
     private static MidiMessage bpmchange;
 
     public static void main(String[] args) {
-        // printMidiDevices();
         try {
             // MIDIシーケンスとトラックの作成
             sequence = new Sequence(Sequence.PPQ, 24);
@@ -90,7 +90,8 @@ public class MidRecord {
         }
     }
 
-    public static MetaMessage getTempoMessage(double bpm) {
+    // テンポを設定するメッセージを作成するメソッド
+    private static MetaMessage getTempoMessage(double bpm) {
         long mpq = Math.round(60000000d / bpm);
         byte[] data = new byte[3];
         data[0] = (byte) (mpq / 0x10000);
@@ -110,26 +111,6 @@ public class MidRecord {
             MidiSystem.write(sequence, 1, midiFile);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public static void printMidiDevices() {
-        MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
-        System.out.println("MidiDevice.Info : " + infos.length + " item(s)");
-        for (int i = 0; i < infos.length; i++) {
-            System.out.println(" MidiDevice.Info[" + i + "]");
-            System.out.println("  Name         : " + infos[i].getName());
-            System.out.println("  Version      : " + infos[i].getVersion());
-            System.out.println("  Vendor       : " + infos[i].getVendor());
-            System.out.println("  Description  : " + infos[i].getDescription());
-            MidiDevice device;
-            try {
-                device = MidiSystem.getMidiDevice(infos[i]);
-            } catch (MidiUnavailableException ex) {
-                throw new IllegalStateException(ex);
-            }
-            System.out.println("  Receivers    : " + device.getMaxReceivers());
-            System.out.println("  Transmitters : " + device.getMaxTransmitters());
         }
     }
 }
