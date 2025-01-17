@@ -17,8 +17,8 @@ public class Score {
         return notes;
     }
 
-    public boolean Judge(Note note) {
-        if (notes.get(judNum).getKey() == note.getKey()) {
+    public boolean judge(Note note) {
+        if(notes.get(judNum).getKey() == note.getKey()) {
             judNum++;
             return true;
         } else {
