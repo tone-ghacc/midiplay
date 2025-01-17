@@ -7,8 +7,8 @@ public class StudyPiano {
     private static Track track;
     private static long startTime;
     private static MidiMessage bpmchange;
-    private static Score score;
     private static boolean isJudge;
+    private static MidiDevice device = null;
 
     public static void main(String[] args) {
         try {
@@ -20,34 +20,17 @@ public class StudyPiano {
             bpmchange = getTempoMessage(240);
             track.add(new MidiEvent(bpmchange, 0));
 
-            score = new Score();
+            Score score = new Score();
 
             // MIDIデバイスの取得
-            MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
-            MidiDevice device = null;
-
-            for (MidiDevice.Info info : infos) {
-                device = MidiSystem.getMidiDevice(info);
-                if ((device.getMaxTransmitters() != 0) && !((info.getName()).equals("Real Time Sequencer"))) {
-                    System.out.println("MIDIデバイスが見つかりました: " + info.getName());
-                    break;
-                }
-            }
-
-            if (device == null) {
-                System.out.println("MIDIデバイスが見つかりません。");
-                return;
-            }
-
-            // デバイスをオープン
-            device.open();
+            getDevice();
 
             // トランスミッターの設定
             Transmitter transmitter = device.getTransmitter();
             transmitter.setReceiver(new Receiver() {
                 @Override
                 public void send(MidiMessage message, long timeStamp) {
-                    if (message instanceof ShortMessage) {
+                    if(message instanceof ShortMessage) {
                         ShortMessage sm = (ShortMessage) message;
                         int command = sm.getCommand();
                         int key = sm.getData1();
@@ -57,17 +40,14 @@ public class StudyPiano {
                         long tick = (System.currentTimeMillis() - startTime) / 10;
 
                         try {
-                            if (command == ShortMessage.NOTE_ON && velocity > 0) {
+                            if(command == ShortMessage.NOTE_ON && velocity > 0) {
                                 System.out.println("鍵盤が押されました: " + key);
-                                track.add(
-                                        new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
+                                track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
                                 Note note = new Note(key, velocity, tick);
                                 score.addNote(note);
-                            } else if (command == ShortMessage.NOTE_OFF
-                                    || (command == ShortMessage.NOTE_ON && velocity == 0)) {
+                            } else if(command == ShortMessage.NOTE_OFF || (command == ShortMessage.NOTE_ON && velocity == 0)) {
                                 System.out.println("鍵盤が離されました: " + key);
-                                track.add(
-                                        new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, key, velocity), tick));
+                                track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, key, velocity), tick));
                             }
                         } catch (InvalidMidiDataException e) {
                             e.printStackTrace();
@@ -93,6 +73,8 @@ public class StudyPiano {
             while (isJudge) {
                 MidiPlayer.play(new File("assets/output.mid"));
 
+                getDevice();
+
                 // MIDIシーケンスとトラックの作成 - 生徒側
                 sequence = new Sequence(Sequence.PPQ, 24);
                 startTime = System.currentTimeMillis();
@@ -100,7 +82,7 @@ public class StudyPiano {
                 transmitter.setReceiver(new Receiver() {
                     @Override
                     public void send(MidiMessage message, long timeStamp) {
-                        if (message instanceof ShortMessage) {
+                        if(message instanceof ShortMessage) {
                             ShortMessage sm = (ShortMessage) message;
                             int command = sm.getCommand();
                             int key = sm.getData1();
@@ -109,16 +91,15 @@ public class StudyPiano {
                             // イベントのタイミングを計算
                             long tick = (System.currentTimeMillis() - startTime) / 10;
 
-                            if (command == ShortMessage.NOTE_ON && velocity > 0) {
+                            if(command == ShortMessage.NOTE_ON && velocity > 0) {
                                 System.out.println("鍵盤が押されました: " + key);
                                 Note note = new Note(key, velocity, tick);
-                                if (isJudge = score.Judge(note)) {
+                                if(isJudge = score.Judge(note)) {
                                     System.out.println("正解です");
                                 } else {
                                     System.out.println("不正解です");
                                 }
-                            } else if (command == ShortMessage.NOTE_OFF
-                                    || (command == ShortMessage.NOTE_ON && velocity == 0)) {
+                            } else if(command == ShortMessage.NOTE_OFF || (command == ShortMessage.NOTE_ON && velocity == 0)) {
                                 System.out.println("鍵盤が離されました: " + key);
                             }
                         }
@@ -137,6 +118,30 @@ public class StudyPiano {
             device.close();
 
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void getDevice() {
+        MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+
+        try {
+            for (MidiDevice.Info info : infos) {
+                device = MidiSystem.getMidiDevice(info);
+                if((device.getMaxTransmitters() != 0) && !((info.getName()).equals("Real Time Sequencer"))) {
+                    System.out.println("MIDIデバイスが見つかりました: " + info.getName());
+                    break;
+                }
+            }
+
+            if(device == null) {
+                System.out.println("MIDIデバイスが見つかりません。");
+                return;
+            }
+
+            // デバイスをオープン
+            device.open();
+        } catch (MidiUnavailableException e) {
             e.printStackTrace();
         }
     }
