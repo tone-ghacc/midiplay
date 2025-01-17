@@ -1,4 +1,6 @@
 import java.io.File;
+import javax.sound.midi.Transmitter;
+import java.util.ArrayList;
 
 public class StudyPiano {
     private static boolean isJudge;
@@ -7,15 +9,21 @@ public class StudyPiano {
         try {
             // scoreのインスタンスを生成
             Score score = MidiHandler.recordMidiScore(MidiDeviceHandler.getHardwareMidiDeviceTransmitter(), System.currentTimeMillis());
-            score.notes.forEach(note -> System.out.println("Key: " + note.getKey() + ", Velocity: " + note.getVelocity() + ", Tick: " + note.getTick()));
+            score.getNote().forEach(note -> System.out.println("Key: " + note.getKey() + ", Velocity: " + note.getVelocity() + ", Tick: " + note.getTick()));
+
+            // デバイスをクローズ
+            MidiDeviceHandler.midiDeviceCloser();
 
             // MIDIファイルを再生し、判定を行う
-            isJudge = true;
-            while (isJudge) {
-                MidiHandler.playMidiFile(MidiDeviceHandler.getHardwareMidiDeviceReceiver(), new File("assets/output.mid"));
-                isJudge = MidiHandler.startJudgement(MidiDeviceHandler.getHardwareMidiDeviceTransmitter(), score, System.currentTimeMillis());
-            }
+            MidiHandler.playMidiFile(MidiDeviceHandler.getHardwareMidiDeviceReceiver(), new File("assets/output.mid"));
+            // isJudge = true;
+            // while (MidiHandler.startJudgement(MidiDeviceHandler.getHardwareMidiDeviceTransmitter(), score, System.currentTimeMillis())) {
+            // if(!isJudge) {
+            // break;
+            // }
+            // }
 
+            ArrayList<Note> notes = MidiHandler.recordNotes(MidiDeviceHandler.getHardwareMidiDeviceTransmitter(), System.currentTimeMillis());
             // デバイスをクローズ
             MidiDeviceHandler.midiDeviceCloser();
 

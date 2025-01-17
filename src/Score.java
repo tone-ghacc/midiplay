@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
 public class Score {
-    ArrayList<Note> notes;
-    int judNum;
+    private ArrayList<Note> notes;
+    private int judNum;
 
     Score() {
         notes = new ArrayList<>();
@@ -17,12 +17,11 @@ public class Score {
         return notes;
     }
 
-    public boolean judge(Note note) {
-        if(notes.get(judNum).getKey() == note.getKey()) {
+    public boolean judge(Note inputNote) {
+        if(judNum < notes.size() && notes.get(judNum).key == inputNote.key) {
             judNum++;
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 }

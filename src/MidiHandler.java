@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import javax.sound.midi.*;
 
@@ -110,45 +111,53 @@ public class MidiHandler {
         }
     }
 
-    public static boolean startJudgement(Transmitter transmitter, Score score, long startTime) {
-        final boolean[] isJudge = { true };
-        try {
-            Receiver receiver = new Receiver() {
-                @Override
-                public void send(MidiMessage message, long timeStamp) {
-                    if(message instanceof ShortMessage) {
-                        ShortMessage sm = (ShortMessage) message;
-                        if(sm.getCommand() == ShortMessage.NOTE_ON) {
-                            int key = sm.getData1();
-                            int velocity = sm.getData2();
-                            long tick = (System.currentTimeMillis() - startTime) / 10;
+    public static ArrayList<Note> recordNotes(Transmitter transmitter, long startTime) {
+        ArrayList<Note> notes = new ArrayList<>();
 
-                            Note receivedNote = new Note(key, velocity, tick);
-
-                            if(score.judge(receivedNote)) {
-                                System.out.println("Correct note received. Waiting for the next note...");
-                            } else {
-                                System.out.println("Incorrect note! Ending program.");
-                                isJudge[0] = false;
-                                transmitter.close();
-                            }
-                        }
+        // Create a Receiver to handle MIDI messages
+        Receiver receiver = new Receiver() {
+            @Override
+            public void send(MidiMessage message, long timeStamp) {
+                if(message instanceof ShortMessage) {
+                    ShortMessage sm = (ShortMessage) message;
+                    if(sm.getCommand() == ShortMessage.NOTE_ON && sm.getData2() > 0) {
+                        int key = sm.getData1();
+                        int velocity = sm.getData2();
+                        long tick = (System.currentTimeMillis() - startTime) / 10;
+                        notes.add(new Note(key, velocity, tick));
                     }
                 }
+            }
 
-                @Override
-                public void close() {
-                    System.out.println("Receiver closed.");
-                }
-            };
+            @Override
+            public void close() {
+                // No resources to release in this example
+            }
+        };
 
-            transmitter.setReceiver(receiver);
-            System.out.println("Listening for MIDI input...");
-        } catch (Exception e) {
-            System.err.println("Error initializing MIDI receiver: " + e.getMessage());
-            e.printStackTrace();
+        // Connect the Transmitter to the custom Receiver
+        transmitter.setReceiver(receiver);
+
+        // Start a thread to listen for the Enter key to terminate
+        Thread inputThread = new Thread(() -> {
+            try (Scanner scanner = new Scanner(System.in)) {
+                System.out.println("Press Enter to stop recording...");
+                scanner.nextLine();
+                transmitter.close();
+                System.out.println("Recording stopped.");
+            }
+        });
+
+        inputThread.start();
+
+        try {
+            // Wait for the input thread to complete
+            inputThread.join();
+        } catch (InterruptedException e) {
+            System.err.println("Input thread was interrupted: " + e.getMessage());
         }
-        return isJudge[0];
+
+        return notes;
     }
 
     private static void saveMidiFile(Sequence sequence, String filename) {
