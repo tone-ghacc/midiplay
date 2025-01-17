@@ -11,5 +11,6 @@
         <setting id="org.eclipse.jdt.core.formatter.brace_position_for_method_declaration" value="end_of_line"/>
         <setting id="org.eclipse.jdt.core.formatter.brace_position_for_type_declaration" value="end_of_line"/>
         <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="200"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.line_length" value="200"/>
     </profile>
 </profiles>

@@ -79,42 +79,34 @@ public class MidiHandler {
         return score;
     }
 
-    public static void playMidiFile(Transmitter transmitter, File midiFile) {
-        Sequencer sequencer = null;
-
+    public static void playMidiFile(Receiver receiver, File midiFile) {
         try {
-            // シーケンサーを取得
-            sequencer = MidiSystem.getSequencer(false); // デフォルトのデバイスを使用しない
-            if(sequencer == null) {
-                throw new MidiUnavailableException("Sequencer not available");
-            }
-
-            // MIDIデータをロード
-            sequencer.setSequence(MidiSystem.getSequence(midiFile));
-
-            // TransmitterをSequencerに接続
-            transmitter.setReceiver(sequencer.getReceiver());
-
-            // 再生準備
+            // Obtain a Sequencer instance
+            Sequencer sequencer = MidiSystem.getSequencer(false); // Do not use the default device
             sequencer.open();
 
-            // 再生開始
+            // Set the custom Receiver
+            Transmitter transmitter = sequencer.getTransmitter();
+            transmitter.setReceiver(receiver);
+
+            // Load the MIDI file into the sequencer
+            Sequence sequence = MidiSystem.getSequence(midiFile);
+            sequencer.setSequence(sequence);
+
+            // Start playback
             sequencer.start();
 
-            System.out.println("Playing MIDI file...");
-
-            // 再生が終了するまで待機
+            // Wait for the playback to finish
             while (sequencer.isRunning()) {
-                Thread.sleep(100);
+                Thread.sleep(100); // Check status periodically
             }
 
-            System.out.println("Playback finished.");
-        } catch (MidiUnavailableException | InvalidMidiDataException | IOException | InterruptedException e) {
+            // Close resources
+            sequencer.stop();
+            sequencer.close();
+        } catch (Exception e) {
+            System.err.println("Error while playing MIDI file: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            if(sequencer != null && sequencer.isOpen()) {
-                sequencer.close();
-            }
         }
     }
 
