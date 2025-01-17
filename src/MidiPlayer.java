@@ -1,10 +1,12 @@
+import java.io.File;
+
 import javax.sound.midi.*;
 
-public class MidifPlay {
-    public static void main(String[] args) {
+public class MidiPlayer {
+    static void play(File midiFile) {
         try {
             // 1. MIDIファイルを読み込む
-            Sequence sequence = MidiSystem.getSequence(MidifPlay.class.getResource("output.mid"));
+            Sequence sequence = MidiSystem.getSequence(midiFile);
 
             // 2. シーケンサーを取得
             Sequencer sequencer = MidiSystem.getSequencer(false); // false: デフォルトシーケンサーを使用しない
