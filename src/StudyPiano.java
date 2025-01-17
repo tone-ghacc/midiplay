@@ -16,6 +16,9 @@ public class StudyPiano {
 
             // MIDIファイルを再生し、判定を行う
             MidiHandler.playMidiFile(MidiDeviceHandler.getHardwareMidiDeviceReceiver(), new File("assets/output.mid"));
+            // デバイスをクローズ
+            MidiDeviceHandler.midiDeviceCloser();
+
             // isJudge = true;
             // while (MidiHandler.startJudgement(MidiDeviceHandler.getHardwareMidiDeviceTransmitter(), score, System.currentTimeMillis())) {
             // if(!isJudge) {

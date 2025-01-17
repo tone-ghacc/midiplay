@@ -1,7 +1,10 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import javax.sound.midi.*;
 
 public class MidiHandler {
@@ -113,6 +116,7 @@ public class MidiHandler {
 
     public static ArrayList<Note> recordNotes(Transmitter transmitter, long startTime) {
         ArrayList<Note> notes = new ArrayList<>();
+        CountDownLatch stopLatch = new CountDownLatch(1);
 
         // Create a Receiver to handle MIDI messages
         Receiver receiver = new Receiver() {
@@ -138,23 +142,39 @@ public class MidiHandler {
         // Connect the Transmitter to the custom Receiver
         transmitter.setReceiver(receiver);
 
-        // Start a thread to listen for the Enter key to terminate
+        // Create a separate thread for input handling
         Thread inputThread = new Thread(() -> {
-            try (Scanner scanner = new Scanner(System.in)) {
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Press Enter to stop recording...");
-                scanner.nextLine();
-                transmitter.close();
-                System.out.println("Recording stopped.");
+                reader.readLine(); // Wait for Enter key
+            } catch (IOException e) {
+                System.err.println("Error reading input: " + e.getMessage());
+            } finally {
+                stopLatch.countDown(); // Signal that we're done
+                if(reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        System.err.println("Error closing reader: " + e.getMessage());
+                    }
+                }
             }
         });
 
+        // Start the input thread
+        inputThread.setDaemon(true); // Mark as daemon thread
         inputThread.start();
 
         try {
-            // Wait for the input thread to complete
-            inputThread.join();
+            // Wait for the stop signal
+            stopLatch.await();
+            transmitter.close();
+            System.out.println("Recording stopped.");
         } catch (InterruptedException e) {
-            System.err.println("Input thread was interrupted: " + e.getMessage());
+            System.err.println("Recording was interrupted: " + e.getMessage());
+            Thread.currentThread().interrupt();
         }
 
         return notes;
