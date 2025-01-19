@@ -14,7 +14,7 @@ public class StudyPiano {
             transmitter.setReceiver(recorder);
 
             // Enterキーを押すまで待機
-            System.out.println("Press Enter to stop recording.");
+            System.out.println("鍵盤を弾き終わったらEnterキーを押してね！");
             System.in.read();
 
             // MIDIレコーダーを停止
@@ -25,6 +25,8 @@ public class StudyPiano {
                 File midiFile = new File("assets/output.mid");
                 MidiHandler.playMidiFile(receiver, midiFile);
 
+                System.out.println("次はあなたの番だよ！");
+
                 // 生徒が演奏したMIDIを録音
                 recorder.startStudentRecording();
 
@@ -33,6 +35,9 @@ public class StudyPiano {
                 // MIDIレコーダーを停止
                 recorder.stopRecording();
             }
+
+            // 余韻のため1秒待機
+            Thread.sleep(1000);
 
             // MIDIデバイスをクローズ
             MidiDeviceHandler.midiDeviceCloser();

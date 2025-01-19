@@ -3,6 +3,8 @@ import javax.sound.midi.*;
 
 public class MidiHandler {
     public static void playMidiFile(Receiver receiver, File midiFile) {
+        System.out.println("Playing MIDI file: " + midiFile.getName());
+        System.out.println("再生が終わるまで待ってね！");
         try {
             // Obtain a Sequencer instance
             Sequencer sequencer = MidiSystem.getSequencer(false); // Do not use the default device
@@ -27,6 +29,7 @@ public class MidiHandler {
             // Close resources
             sequencer.stop();
             sequencer.close();
+            System.out.println("MIDI file playback completed.");
         } catch (Exception e) {
             System.err.println("Error while playing MIDI file: " + e.getMessage());
             e.printStackTrace();

@@ -60,7 +60,7 @@ public class MidiDeviceHandler {
                     System.out.println("Closing open MIDI device: " + info.getName());
                     device.close();
                 } else {
-                    System.out.println("MIDI device is not open: " + info.getName());
+                    // System.out.println("MIDI device is not open: " + info.getName());
                 }
             } catch (MidiUnavailableException e) {
                 System.err.println("Could not access MIDI device: " + info.getName());

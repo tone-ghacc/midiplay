@@ -52,6 +52,7 @@ public class MidiRecorder implements Receiver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("MIDIファイルを保存しました。");
     }
 
     public boolean getJudgement() {
@@ -92,7 +93,7 @@ public class MidiRecorder implements Receiver {
                                 notifyMain();
                             }
                         } else {
-                            System.out.println("不正解...");
+                            System.out.println("不正解...\nもう一度MIDIを再生するね！");
                             isClear = false;
                             notifyMain();
                         }
