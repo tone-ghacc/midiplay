@@ -17,6 +17,10 @@ public class Score {
         return notes;
     }
 
+    public int getJudNum() {
+        return judNum;
+    }
+
     public boolean judge(Note inputNote) {
         if(judNum < notes.size() && notes.get(judNum).key == inputNote.key) {
             judNum++;

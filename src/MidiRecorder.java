@@ -1,13 +1,13 @@
 import java.io.File;
 import java.io.IOException;
-
 import javax.sound.midi.*;
 
 public class MidiRecorder implements Receiver {
     private static MidiRecorder instance = new MidiRecorder();
     private static long startTime = 0;
     private static boolean isRecording = false;
-    private static boolean isTeacher = true;
+    private static boolean isTeacher = false;
+    private static boolean isClear = false;
     private Score score = new Score();
     private Sequence sequence;
     private Track track;
@@ -21,25 +21,41 @@ public class MidiRecorder implements Receiver {
         return instance;
     }
 
-    public void startRecording() {
+    public void startTeacherRecording() {
         try {
             sequence = new Sequence(Sequence.PPQ, 24);
             track = sequence.createTrack();
             MetaMessage bpmchange = getTempoMessage(240);
             track.add(new MidiEvent(bpmchange, 0));
             isRecording = true;
+            isTeacher = true;
         } catch (InvalidMidiDataException e) {
             e.printStackTrace();
         }
     }
 
+    public void startStudentRecording() {
+        isRecording = true;
+        isTeacher = false;
+    }
+
+    public void stopRecording() {
+        isRecording = false;
+    }
+
     public void saveMidiFile(String filename) {
+        isRecording = false;
+        isTeacher = false;
         try {
             File midiFile = new File(filename);
             MidiSystem.write(sequence, 1, midiFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean getJudgement() {
+        return isClear;
     }
 
     @Override
@@ -68,6 +84,18 @@ public class MidiRecorder implements Receiver {
                 try {
                     if(command == ShortMessage.NOTE_ON && velocity > 0) {
                         System.out.println("キー: " + key + ", ベロシティ: " + velocity);
+                        if(score.judge(new Note(key, velocity, tick))) {
+                            System.out.println("正解！");
+                            if(score.getJudNum() == score.getNote().size()) {
+                                System.out.println("全問正解！");
+                                isClear = true;
+                                notifyMain();
+                            }
+                        } else {
+                            System.out.println("不正解...");
+                            isClear = false;
+                            notifyMain();
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -80,6 +108,10 @@ public class MidiRecorder implements Receiver {
     public void close() {
         // TODO Auto-generated method stub
 
+    }
+
+    private synchronized void notifyMain() {
+        StudyPiano.class.notifyAll();
     }
 
     private MetaMessage getTempoMessage(double bpm) {
