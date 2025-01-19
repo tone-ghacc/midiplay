@@ -1,0 +1,97 @@
+import java.io.File;
+import java.io.IOException;
+
+import javax.sound.midi.*;
+
+public class MidiRecorder implements Receiver {
+    private static MidiRecorder instance = new MidiRecorder();
+    private static long startTime = 0;
+    private static boolean isRecording = false;
+    private static boolean isTeacher = true;
+    private Score score = new Score();
+    private Sequence sequence;
+    private Track track;
+
+    private MidiRecorder() {
+        System.out.println("MidiRecorderインスタンスを作成しました。");
+    }
+
+    public static MidiRecorder getInstance() {
+        startTime = System.currentTimeMillis();
+        return instance;
+    }
+
+    public void startRecording() {
+        try {
+            sequence = new Sequence(Sequence.PPQ, 24);
+            track = sequence.createTrack();
+            MetaMessage bpmchange = getTempoMessage(240);
+            track.add(new MidiEvent(bpmchange, 0));
+            isRecording = true;
+        } catch (InvalidMidiDataException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveMidiFile(String filename) {
+        try {
+            File midiFile = new File(filename);
+            MidiSystem.write(sequence, 1, midiFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void send(MidiMessage message, long timeStamp) {
+        if((message instanceof ShortMessage) && isRecording) {
+            ShortMessage sm = (ShortMessage) message;
+            int command = sm.getCommand();
+            int key = sm.getData1();
+            int velocity = sm.getData2();
+
+            // イベントのタイミングを計算
+            long tick = (System.currentTimeMillis() - startTime) / 10;
+            if(isTeacher) {
+                try {
+                    if(command == ShortMessage.NOTE_ON && velocity > 0) {
+                        System.out.println("キー: " + key + ", ベロシティ: " + velocity);
+                        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 0, key, velocity), tick));
+                        score.addNote(new Note(key, velocity, tick));
+                    } else if(command == ShortMessage.NOTE_OFF || (command == ShortMessage.NOTE_ON && velocity == 0)) {
+                        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, key, velocity), tick));
+                    }
+                } catch (InvalidMidiDataException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    if(command == ShortMessage.NOTE_ON && velocity > 0) {
+                        System.out.println("キー: " + key + ", ベロシティ: " + velocity);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        // TODO Auto-generated method stub
+
+    }
+
+    private MetaMessage getTempoMessage(double bpm) {
+        long mpq = Math.round(60000000d / bpm);
+        byte[] data = new byte[3];
+        data[0] = (byte) (mpq / 0x10000);
+        data[1] = (byte) ((mpq / 0x100) % 0x100);
+        data[2] = (byte) (mpq % 0x100);
+        try {
+            return new MetaMessage(0x51, data, data.length);
+        } catch (InvalidMidiDataException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+}

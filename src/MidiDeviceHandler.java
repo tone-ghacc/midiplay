@@ -9,8 +9,8 @@ public class MidiDeviceHandler {
         for (MidiDevice.Info info : midiDevices) {
             MidiDevice device = MidiSystem.getMidiDevice(info);
 
-            // シーケンサーとシンセサイザーを除外
-            if(!(device instanceof Sequencer) && !(device instanceof Synthesizer)) {
+            // シーケンサーとシンセサイザーとWindowsを除外
+            if(!(device instanceof Sequencer) && !(device instanceof Synthesizer) && !(info.getName().contains("Microsoft"))) {
                 // ハードウェアMIDIデバイスをチェック
                 if(device.getMaxTransmitters() != 0) { // 最大送信数を確認
                     device.open(); // デバイスをオープン
@@ -31,7 +31,7 @@ public class MidiDeviceHandler {
         for (MidiDevice.Info info : midiDevices) {
             MidiDevice device = MidiSystem.getMidiDevice(info);
 
-            // シーケンサーとシンセサイザーを除外
+            // シーケンサーとシンセサイザーとWindowsを除外
             if(!(device instanceof Sequencer) && !(device instanceof Synthesizer) && !(info.getName().contains("Microsoft"))) {
                 // ハードウェアMIDIデバイスをチェック
                 if(device.getMaxReceivers() != 0) { // 最大受信数を確認
