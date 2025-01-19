@@ -25,7 +25,9 @@ public class Score {
         if(judNum < notes.size() && notes.get(judNum).key == inputNote.key) {
             judNum++;
             return true;
+        } else {
+            judNum = 0;
+            return false;
         }
-        return false;
     }
 }

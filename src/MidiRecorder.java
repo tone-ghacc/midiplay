@@ -110,8 +110,10 @@ public class MidiRecorder implements Receiver {
 
     }
 
-    private synchronized void notifyMain() {
-        StudyPiano.class.notifyAll();
+    private void notifyMain() {
+        synchronized (StudyPiano.class) {
+            StudyPiano.class.notify();
+        }
     }
 
     private MetaMessage getTempoMessage(double bpm) {
