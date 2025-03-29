@@ -93,6 +93,7 @@ public class MidiRecorder implements Receiver {
                                 notifyMain();
                             }
                         } else {
+
                             System.out.println("不正解...\nもう一度MIDIを再生するね！");
                             isClear = false;
                             notifyMain();

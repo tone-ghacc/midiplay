@@ -34,6 +34,13 @@ public class StudyPiano {
 
                 // MIDIレコーダーを停止
                 recorder.stopRecording();
+                if(recorder.getJudgement()) {
+                    File corrSound = new File("assets/correct.mid");
+                    MidiHandler.playMidiFile(receiver, corrSound);
+                } else {
+                    File incorrSound = new File("assets/incorrect.mid");
+                    MidiHandler.playMidiFile(receiver, incorrSound);
+                }
             }
 
             // 余韻のため1秒待機

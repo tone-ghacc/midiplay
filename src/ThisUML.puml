@@ -1,0 +1,88 @@
+@startuml RefinedStudyPiano
+
+' インターフェースで抽象化（デバイス操作・レコーディング）
+interface IMidiDevice {
+    +getTransmitter() : Transmitter
+    +getReceiver() : Receiver
+    +closeDevice()
+}
+
+interface IMidiRecorder {
+    +startRecording(mode : RecordingMode)
+    +stopRecording()
+    +save(filename : String)
+    +getJudgement() : boolean
+    +send(message : MidiMessage, timeStamp : long)
+    +close()
+}
+
+enum RecordingMode {
+    TEACHER
+    STUDENT
+}
+
+' 改善された各クラス
+class MidiDeviceHandler implements IMidiDevice {
+    +getTransmitter() : Transmitter
+    +getReceiver() : Receiver
+    +closeDevice()
+}
+
+class MidiHandler {
+    +playMidiFile(receiver : Receiver, midiFile : File)
+}
+
+class MidiRecorder implements IMidiRecorder {
+    -startTime : long
+    -isRecording : boolean
+    -mode : RecordingMode
+    -score : Score
+    -sequence : Sequence
+    -track : Track
+    +startRecording(mode : RecordingMode)
+    +stopRecording()
+    +save(filename : String)
+    +getJudgement() : boolean
+    +send(message : MidiMessage, timeStamp : long)
+    +close()
+    -notifyMain()
+    -getTempoMessage(bpm : double) : MetaMessage
+}
+
+class Note {
+    -key : int
+    -velocity : int
+    -tick : long
+    +getKey() : int
+    +getVelocity() : int
+    +getTick() : long
+}
+
+class Score {
+    -notes : ArrayList<Note>
+    -judNum : int
+    +Score()
+    +addNote(note : Note)
+    +getNotes() : ArrayList<Note>
+    +getJudNum() : int
+    +judge(inputNote : Note) : boolean
+}
+
+' アプリケーション本体（依存性注入も意識）
+class StudyPiano {
+    -device : IMidiDevice
+    -recorder : IMidiRecorder
+    -midiHandler : MidiHandler
+    +StudyPiano(device : IMidiDevice, recorder : IMidiRecorder, midiHandler : MidiHandler)
+    +main(String[] args)
+    +waitMidiKey()
+}
+
+' 関係性（依存性注入・使用の明示化）
+StudyPiano --> IMidiDevice
+StudyPiano --> IMidiRecorder
+StudyPiano --> MidiHandler
+MidiRecorder --> Score
+Score --> Note
+
+@enduml
